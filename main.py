@@ -1,4 +1,6 @@
 import logging
+import re
+
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -58,13 +60,10 @@ async def handle_message(message: Message):
         if word in banned_keywords:
             banned_words_count += 1
             increment_keyword_frequency(word)
-
+    filtered_text = re.sub(r'http[s]?://\S+', '(ссылка)', message.text)
     if total_words > 0 and (banned_words_count / total_words) >= 0.8:
         await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        await bot.send_message(chat_id=message.chat.id, text=f"Сообщение удалено: {message.text} (из-за попадания в спам-фильтр).")
-    elif banned_words_count > 0:
-        await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        await bot.send_message(chat_id=message.chat.id, text=f"Сообщение удалено: {message.text} (из-за попадания в спам-фильтр).")
+        await bot.send_message(chat_id=message.chat.id, text=f"Сообщение удалено: {filtered_text} (из-за попадания в спам-фильтр).")
 
 # Основная функция
 async def main():
